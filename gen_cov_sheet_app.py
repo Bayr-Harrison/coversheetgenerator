@@ -7,11 +7,11 @@ import zipfile
 # Function to generate coversheets and save them to a zip file
 def generate_coversheets_zip(student_list=[]):
     db_connection = pg8000.connect(
-        database="postgres",
-        user="postgres.yetmtzyyztirghaxnccp",
-        password="Keyblade19731998",
-        host="aws-0-ap-southeast-1.pooler.supabase.com",
-        port=6543
+        database=os.environ["SUPABASE_DB_NAME"],
+        user=os.environ["SUPABASE_USER"],
+        password=os.environ["SUPABASE_PASSWORD"],
+        host=os.environ["SUPABSE_HOST"],
+        port=os.environ["SUPABASE_PORT"]
     )
 
     db_cursor = db_connection.cursor()
