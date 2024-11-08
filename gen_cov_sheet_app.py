@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
-import pg8000  # Import pg8000 instead of psycopg2
-import os
+import pg8000
+from io import BytesIO
 
 # Function to generate coversheets
-def generate_coversheets(student_list=[], file_location=""):
+def generate_coversheets(student_list=[]):
     db_connection = pg8000.connect(
         database="postgres",
         user="postgres.yetmtzyyztirghaxnccp",
@@ -36,36 +36,43 @@ def generate_coversheets(student_list=[], file_location=""):
     col_names = ['name', 'iatc_id', 'class', 'exam', 'score', 'result', 'date']
     df = pd.DataFrame(output_data, columns=col_names)
 
-    if not os.path.exists(file_location):
-        os.makedirs(file_location)
+    # Create a dictionary to store files for each student
+    excel_files = {}
 
     for student_id in student_list:
         filtered_df = df[df['iatc_id'] == student_id]
-        filtered_df.to_excel(f"{file_location}/{student_id}.xlsx")
+
+        # Save each filtered dataframe to an in-memory buffer
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            filtered_df.to_excel(writer, index=False, sheet_name=str(student_id))
+        
+        output.seek(0)
+        excel_files[student_id] = output
+
+    return excel_files
 
 # Streamlit interface
 st.title("Generate Coversheets")
 st.write("Enter a list of student IDs and download the Excel coversheets.")
 
 student_ids_input = st.text_area("Enter Student IDs separated by commas (e.g., 151596, 156756, 154960):")
-file_location = st.text_input("Enter the output file path or leave blank to use default location:", value="output_folder")
 
 if st.button("Generate Coversheets"):
     try:
         student_list = [int(id.strip()) for id in student_ids_input.split(",")]
         st.write("Generating coversheets...")
 
-        generate_coversheets(student_list, file_location)
+        # Generate the coversheets and get files in memory
+        excel_files = generate_coversheets(student_list)
 
         st.success("Coversheets generated successfully!")
-        for student_id in student_list:
-            file_path = os.path.join(file_location, f"{student_id}.xlsx")
-            with open(file_path, "rb") as file:
-                st.download_button(
-                    label=f"Download {student_id}.xlsx",
-                    data=file,
-                    file_name=f"{student_id}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
+        for student_id, excel_file in excel_files.items():
+            st.download_button(
+                label=f"Download {student_id}.xlsx",
+                data=excel_file,
+                file_name=f"{student_id}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
     except Exception as e:
         st.error(f"An error occurred: {e}")
