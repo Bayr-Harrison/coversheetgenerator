@@ -34,14 +34,14 @@ def generate_coversheets_zip(student_list=[]):
     db_cursor.close()
     db_connection.close()
 
-    col_names = ['name', 'iatc_id', 'class', 'exam', 'score', 'result', 'date']
+    col_names = ['Name', 'IATC ID', 'Class', 'Subject', 'Score', 'Result', 'Date']
     df = pd.DataFrame(output_data, columns=col_names)
 
     # Create an in-memory ZIP file
     zip_buffer = BytesIO()
     with zipfile.ZipFile(zip_buffer, "w") as zip_file:
         for student_id in student_list:
-            filtered_df = df[df['iatc_id'] == student_id]
+            filtered_df = df[df['IATC ID'] == student_id]
 
             # Save each filtered dataframe to an in-memory buffer
             excel_buffer = BytesIO()
@@ -57,8 +57,8 @@ def generate_coversheets_zip(student_list=[]):
     return zip_buffer
 
 # Streamlit interface
-st.title("Generate Coversheets")
-st.write("Enter a list of student IDs and download the Excel coversheets.")
+st.title("Generate Theory Exam Coversheets")
+st.write("Enter a list of student IDs and download the Excel coversheets containing the highest result for each subject the student has taken.")
 
 student_ids_input = st.text_area("Enter Student IDs separated by commas (e.g., 151596, 156756, 154960):")
 
