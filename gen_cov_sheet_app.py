@@ -61,6 +61,9 @@ st.title("Generate Theory Exam Coversheets")
 st.write("Enter a list of student IDs and download the Excel coversheets containing the highest result for each subject the student has taken.")
 
 student_ids_input = st.text_area("Enter Student IDs separated by commas (e.g., 151596, 156756, 154960):")
+st.write("Need help generating a list of IDs? Download the Excel template:")
+template_url = "https://github.com/your_username/coversheetgenerator/raw/main/Coversheet Generator Input.xlsx"
+st.markdown(f"[Download Excel Template](template_url)", unsafe_allow_html=True)
 
 if st.button("Generate Coversheets"):
     try:
