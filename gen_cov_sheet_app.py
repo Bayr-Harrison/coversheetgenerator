@@ -62,8 +62,10 @@ st.write("Enter a list of student IDs and download the Excel coversheets contain
 
 student_ids_input = st.text_area("Enter Student IDs separated by commas (e.g., 151596, 156756, 154960):")
 st.write("Need help generating a list of IDs? Download the Excel template:")
+
 template_url = "https://github.com/Bayr-Harrison/coversheetgenerator/raw/main/Coversheet%20Generator%20Input.xlsx"
-st.markdown(f"[Download Excel Template](template_url)", unsafe_allow_html=True)
+st.markdown(f"[Download Excel Template]({template_url})", unsafe_allow_html=True)
+
 
 if st.button("Generate Coversheets"):
     try:
