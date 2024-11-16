@@ -5,7 +5,7 @@ import pg8000
 from io import BytesIO
 import zipfile
 from openpyxl import Workbook
-from openpyxl.styles import Alignment, Font
+from openpyxl.styles import Alignment, Font, PatternFill, Border, Side
 
 # Function to generate coversheets and save them to a zip file
 def generate_coversheets_zip(student_list=[]):
@@ -53,30 +53,59 @@ def generate_coversheets_zip(student_list=[]):
             sheet = workbook.active
             sheet.title = str(student_id)
 
+            # Styles
+            header_fill = PatternFill(start_color="AEE1F8", end_color="AEE1F8", fill_type="solid")
+            bold_font = Font(bold=True)
+            center_alignment = Alignment(horizontal="center", vertical="center")
+            thin_border = Border(
+                left=Side(style="thin"), 
+                right=Side(style="thin"), 
+                top=Side(style="thin"), 
+                bottom=Side(style="thin")
+            )
+
             # Populate static text in specific cells
-            sheet["B2"] = "Student Name:"
-            sheet["B3"] = "Student IATC ID:"
-            sheet["B4"] = "Student National ID:"
-            sheet["B5"] = "Student Class:"
+            static_cells = {
+                "B2": "Student Name:", "C2": filtered_df['Name'].iloc[0],
+                "B3": "Student IATC ID:", "C3": filtered_df['IATC ID'].iloc[0],
+                "B4": "Student National ID:", "C4": filtered_df['National ID'].iloc[0],
+                "B5": "Student Class:", "C5": filtered_df['Class'].iloc[0]
+            }
 
-            # Populate specific values in the corresponding cells
-            sheet["C2"] = filtered_df['Name'].iloc[0]
-            sheet["C3"] = filtered_df['IATC ID'].iloc[0]
-            sheet["C4"] = filtered_df['National ID'].iloc[0]
-            sheet["C5"] = filtered_df['Class'].iloc[0]
+            for cell, value in static_cells.items():
+                sheet[cell] = value
+                sheet[cell].alignment = center_alignment
+                if cell.startswith("B"):
+                    sheet[cell].font = bold_font
+                    sheet[cell].fill = header_fill
 
-            # Populate the data table starting from B7
-            for col_num, header in enumerate(['Subject', 'Score', 'Result', 'Date'], start=2):
-                sheet.cell(row=6, column=col_num, value=header).font = Font(bold=True)
-                sheet.cell(row=6, column=col_num).alignment = Alignment(horizontal="center")
+            # Populate the data table starting from B8
+            headers = ['Subject', 'Score', 'Result', 'Date']
+            for col_num, header in enumerate(headers, start=2):
+                cell = sheet.cell(row=7, column=col_num, value=header)
+                cell.font = bold_font
+                cell.fill = header_fill
+                cell.alignment = center_alignment
+                cell.border = thin_border
 
-            for row_num, row_data in enumerate(filtered_df[['Subject', 'Score', 'Result', 'Date']].values, start=7):
+            for row_num, row_data in enumerate(filtered_df[['Subject', 'Score', 'Result', 'Date']].values, start=8):
                 for col_num, value in enumerate(row_data, start=2):
-                    sheet.cell(row=row_num, column=col_num, value=value)
+                    cell = sheet.cell(row=row_num, column=col_num, value=value)
+                    cell.alignment = center_alignment
+                    cell.border = thin_border
 
             # Adjust column widths
-            for column in ["B", "C", "D", "E"]:
-                sheet.column_dimensions[column].width = 20
+            for col in sheet.columns:
+                max_length = 0
+                col_letter = col[0].column_letter  # Get the column letter
+                for cell in col:
+                    try:
+                        if cell.value:
+                            max_length = max(max_length, len(str(cell.value)))
+                    except:
+                        pass
+                adjusted_width = max_length + 2
+                sheet.column_dimensions[col_letter].width = adjusted_width
 
             # Save the workbook to a buffer
             excel_buffer = BytesIO()
