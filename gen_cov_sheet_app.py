@@ -75,9 +75,16 @@ def generate_coversheets_zip(student_list=[]):
             for cell, value in static_cells.items():
                 sheet[cell] = value
                 sheet[cell].alignment = center_alignment
+                sheet[cell].border = thin_border
                 if cell.startswith("B"):
                     sheet[cell].font = bold_font
                     sheet[cell].fill = header_fill
+
+            # Apply borders to the range B2:C5
+            for row in range(2, 6):
+                for col in ["B", "C"]:
+                    cell = sheet[f"{col}{row}"]
+                    cell.border = thin_border
 
             # Populate the data table starting from B8
             headers = ['Subject', 'Score', 'Result', 'Date']
